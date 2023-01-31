@@ -1,6 +1,6 @@
 # argparse-f
 
-现在Fortran的命令行参数解析器，使用了面向对象特性。
+现代Fortran的命令行参数解析器，使用了面向对象特性。
 
 ## 示例
 ```fortran
