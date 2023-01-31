@@ -1,3 +1,25 @@
+! MIT License
+
+! Copyright (c) 2023 0382
+
+! Permission is hereby granted, free of charge, to any person obtaining a copy
+! of this software and associated documentation files (the "Software"), to deal
+! in the Software without restriction, including without limitation the rights
+! to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+! copies of the Software, and to permit persons to whom the Software is
+! furnished to do so, subject to the following conditions:
+
+! The above copyright notice and this permission notice shall be included in all
+! copies or substantial portions of the Software.
+
+! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+! IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+! FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+! AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+! LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+! SOFTWARE.
+
 module argparse
   implicit none
   private
@@ -118,7 +140,7 @@ contains
 
   subroutine argp_parse(this)
     class(argparser), intent(inout) :: this
-    integer :: i, j, argc, status
+    integer :: i, j, idx, argc, status
     character(len=value_len), dimension(:), allocatable :: tokens
     character(len=value_len) :: tok
     integer :: token_parsed_num
@@ -139,7 +161,7 @@ contains
     do i = 1, argc
       call get_command_argument(i, tokens(i), status)
       if (status == -1) then
-        print '(A,A,I2)', "WARNING: the command argument, '", tokens(i), "' is truncated, you'd better limit it in 1024 characters"
+        print '(A)', "WARNING: the command argument, '"//trim(tokens(i))//"' is truncated, you'd better limit it in 1024 characters"
       end if
     end do
     ! parse short circuit options
@@ -181,7 +203,39 @@ contains
         argc = argc - token_parsed_num
       end if
     end do
-    ! parse aggregation short name options
+    ! try parse aggregate short name options
+    j = 1
+    do while (j <= argc)
+      tok = tokens(j)
+      j = j + 1
+      if (tok(1:1) /= '-') cycle
+      if (len_trim(tok) <= 2) cycle
+      tok(1:value_len - 1) = tok(2:value_len)
+      do i = 1, len_trim(tok)
+        idx = this%short_name_index(ichar(tok(i:i)))
+        ! short circuit option
+        if (idx <= this%sc_option_size .and. this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
+          if (associated(this%sc_options(idx)%callback, dummy_print_help)) then
+            call this%print_help()
+          else
+            call this%sc_options(idx)%callback()
+          end if
+          stop
+        end if
+        ! normal option
+        if (idx <= this%option_size .and. this%options(idx)%short_name(2:2) == tok(i:i)) then
+          if (this%options(idx)%value_type == "logical") then
+            this%options(idx)%value = 'T'
+          else
+            error stop "(parse error) aggregate short name options must be logical"
+          end if
+        else
+          error stop "(parse error) unrecognized short name option '"//tok(i:i)//"' in -"//trim(tok)
+        end if
+      end do
+      tokens(j - 1:argc - 1) = tokens(j:argc)
+      argc = argc - 1
+    end do
     ! parse named argument
     if (argc < this%named_argument_size) then
       error stop "(parse error) not enough named_arguments"
@@ -211,6 +265,7 @@ contains
     do i = 1, this%argument_size
       this%arguments(i)%value = tokens(i)
     end do
+    deallocate (tokens)
   end subroutine argp_parse
 
   logical function try_parse_named_argument(line, arg) result(ans)
@@ -525,7 +580,7 @@ contains
     call argp_try_add_option(this, short_name, long_name, help)
     idx = this%option_size
     this%options(idx)%value_type = "logical"
-    this%options(idx)%value = "false"
+    this%options(idx)%value = "F"
   end subroutine argp_add_option_logical
 
   subroutine argp_add_option_integer(this, short_name, long_name, help, default)
@@ -706,17 +761,25 @@ contains
         return
       end if
     end do
-    ans = 0
+    error stop "(get error) option not found: "//trim(name)
   end function argp_find_option
+
+  subroutine argp_check_option_type(this, idx, type)
+    class(argparser), intent(in) :: this
+    integer, intent(in) :: idx
+    character(len=*), intent(in) :: type
+    if (this%options(idx)%value_type /= type) then
+      error stop "(get error) option '"//trim(this%options(idx)%long_name)//"' is set as " &
+        //trim(this%options(idx)%value_type)//", you try to get as "//trim(type)
+    end if
+  end subroutine argp_check_option_type
 
   logical function argp_get_option_logical(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_option(this, name)
-    if (i == 0) then
-      error stop "(get error) option not found: "//trim(name)
-    end if
+    call argp_check_option_type(this, i, "logical")
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_logical
 
@@ -731,9 +794,7 @@ contains
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_option(this, name)
-    if (i == 0) then
-      error stop "(get error) option not found: "//trim(name)
-    end if
+    call argp_check_option_type(this, i, "integer")
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_integer
 
@@ -742,9 +803,7 @@ contains
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_option(this, name)
-    if (i == 0) then
-      error stop "(get error) option not found: "//trim(name)
-    end if
+    call argp_check_option_type(this, i, "real")
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_real
 
@@ -753,9 +812,7 @@ contains
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_option(this, name)
-    if (i == 0) then
-      error stop "(get error) option not found: "//trim(name)
-    end if
+    call argp_check_option_type(this, i, "double")
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_double
 
@@ -765,9 +822,7 @@ contains
     character(len=value_len) :: ans
     integer :: i
     i = argp_find_option(this, name)
-    if (i == 0) then
-      error stop "(get error) option not found: "//trim(name)
-    end if
+    call argp_check_option_type(this, i, "string")
     ans = this%options(i)%value
   end function argp_get_option_string
 
@@ -787,17 +842,34 @@ contains
         return
       end if
     end do
-    ans = 0
+    error stop "(get error) argument not found: "//trim(name)
   end function argp_find_argument
+
+  subroutine argp_check_argument_type(this, idx, type)
+    class(argparser), intent(in) :: this
+    integer, intent(in) :: idx
+    character(len=*), intent(in) :: type
+    character(len=type_string_len) :: arg_type
+    character(len=argument_len) :: name
+    if (idx > 0) then
+      arg_type = this%named_arguments(idx)%value_type
+      name = this%named_arguments(idx)%name
+    else
+      arg_type = this%arguments(-idx)%value_type
+      name = this%arguments(-idx)%name
+    end if
+    if (arg_type /= type) then
+      error stop "(get error) argument '"//trim(name)//"' is set as "//trim(arg_type)//", you try to get as "//trim(type)
+    end if
+  end subroutine argp_check_argument_type
 
   integer function argp_get_argument_integer(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_argument(this, name)
-    if (i == 0) then
-      error stop "(get error) argument not found: "//trim(name)
-    else if (i > 0) then
+    call argp_check_argument_type(this, i, "integer")
+    if (i > 0) then
       read (unit=this%named_arguments(i)%value, fmt=*) ans
     else
       read (unit=this%arguments(-i)%value, fmt=*) ans
@@ -809,9 +881,8 @@ contains
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_argument(this, name)
-    if (i == 0) then
-      error stop "(get error) argument not found: "//trim(name)
-    else if (i > 0) then
+    call argp_check_argument_type(this, i, "real")
+    if (i > 0) then
       read (unit=this%named_arguments(i)%value, fmt=*) ans
     else
       read (unit=this%arguments(-i)%value, fmt=*) ans
@@ -823,9 +894,8 @@ contains
     character(len=*), intent(in) :: name
     integer :: i
     i = argp_find_argument(this, name)
-    if (i == 0) then
-      error stop "(get error) argument not found: "//trim(name)
-    else if (i > 0) then
+    call argp_check_argument_type(this, i, "double")
+    if (i > 0) then
       read (unit=this%named_arguments(i)%value, fmt=*) ans
     else
       read (unit=this%arguments(-i)%value, fmt=*) ans
@@ -838,9 +908,8 @@ contains
     character(len=value_len) :: ans
     integer :: i
     i = argp_find_argument(this, name)
-    if (i == 0) then
-      error stop "(get error) argument not found: "//trim(name)
-    else if (i > 0) then
+    call argp_check_argument_type(this, i, "string")
+    if (i > 0) then
       ans = this%named_arguments(i)%value
     else
       ans = this%arguments(-i)%value
@@ -853,12 +922,11 @@ contains
     integer :: name_size, char_pos
     name_size = len(name)
     if (name_size /= 2 .or. name(1:1) /= '-') then
-      error stop "(build error) short option name must be `-` followed by one character"
+      error stop "(build error) short option name must be `-` followed by single character"
     end if
     char_pos = ichar(name(2:2))
     if (this%short_name_index(char_pos) /= -1) then
-      print "(A,A,A)", "(build error) short option name ", name, " already exists"
-      error stop
+      error stop "(build error) short option name "//trim(name)//" already exists"
     end if
   end subroutine argp_check_short_name
 
@@ -870,18 +938,16 @@ contains
       error stop "(build error) long option name cannot be empty"
     end if
     if (name(1:2) /= "--") then
-      error stop "(build error) long option name must be `--` followed by one or more characters"
+      error stop "(build error) long option name must starts with `--`"
     end if
     do i = 1, this%sc_option_size
       if (name == trim(this%sc_options(i)%long_name)) then
-        print "(A,A,A)", "(build error) long option name ", name, " already exists"
-        error stop
+        error stop "(build error) long option name "//trim(name)//" already exists"
       end if
     end do
     do i = 1, this%option_size
       if (name == trim(this%options(i)%long_name)) then
-        print "(A,A,A)", "(build error) long option name ", name, " already exists"
-        error stop
+        error stop "(build error) long option name "//trim(name)//" already exists"
       end if
     end do
   end subroutine argp_check_long_name
@@ -895,14 +961,12 @@ contains
     end if
     do i = 1, this%argument_size
       if (name == trim(this%arguments(i)%name)) then
-        print "(A,A,A)", "(build error) argument name ", name, " already exists"
-        error stop
+        error stop "(build error) argument name "//trim(name)//" already exists"
       end if
     end do
     do i = 1, this%named_argument_size
       if (name == trim(this%named_arguments(i)%name)) then
-        print "(A,A,A)", "(build error) argument name ", name, " already exists"
-        error stop
+        error stop "(build error) argument name "//trim(name)//" already exists"
       end if
     end do
   end subroutine argp_check_argument_name

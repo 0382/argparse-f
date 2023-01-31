@@ -63,8 +63,9 @@ Options:
 Named arguments:
   input                    (string) initialize file
   output                   (string) output file
-> qclac -o -t 4 input=input.txt output=out.bin
-openmp is used, and we use  4 threads
+> qclac -om -t 16 input=input.txt output=out.bin 
+openmp is used, and we use 16 threads
+mpi is used, and we use  1 processes
 the calculated chemical is H2O
 the input file is input.txt
 the output file is out.bin
@@ -72,7 +73,7 @@ the output file is out.bin
 
 ## Usage
 
-The simple way to use this package is copy the file `src/argparse-f.f90` into your project. Or you can use fpm
+The simple way to use this package is copy the file `src/argparse-f.f90` into your project. Or you can use [fpm](https://fpm.fortran-lang.org/en/index.html)
 ```toml
 [dependencies]
 argparse-f = { git="https://github.com/0382/argparse-f.git" }
@@ -169,6 +170,19 @@ Use functions like `args%get_argument_logical(name)` to get argument results. Na
 
 ## Tips
 
+### conflict
+
+Options cannot have same `short_name` or `long_name`, including normal options and short circuit options. Arguments also cannot have same `name`, including named arguments and position arguments.
+
+### aggregate short name options
+In some linux command line programs, there are options I call them aggregate short name options. For example
+```bash
+ls -lah
+```
+It set three logical options `-l`, `-a`, `-h` at the same time. This package also support this feature. Remind that only `logical` type options are supported to be set in this way.
+
+> That's why options' `short_name` only contians single character.
+
 ### custom help option
 
 You can add default help option with `args%add_help_option`, it's `short_name` and `long_name` are `-?` and `--help`. If you dislike the names, you can add custom help option like this
@@ -180,8 +194,10 @@ subroutine print_help
 end subroutine
 ```
 
+> Using `-?` is to save character space for other options' `short_name`. Not every one like it. Luckily it is simple to define your custom help option.
+
 ### multi-line help message
-Some times, help message may be very long. You can use `\n` to as newline split mark. Of course, Fortran does not have escape characters. I just use some character split technique to realize this feature.
+Some times, help message may be very long. You can use `\n` to as line break marker. Of course, Fortran does not have escape characters. I just use some character split technique to realize this feature.
 
 ### print argparser
 
