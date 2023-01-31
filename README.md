@@ -5,7 +5,7 @@ Modern Fortran command line parser, implemented with OOP.
 ## Example
 ```fortran
 program test
-    use iso_fortran_env, only : stdout=>output_unit
+    use iso_fortran_env, only: stdout => output_unit
     use argparse
     implicit none
     character(len=10), parameter :: program_name = "qcalc"
@@ -16,17 +16,17 @@ program test
     call args%add_sc_option("-v", "--version", "show version info", show_version_info)
     call args%add_option_logical("-o", "--openmp", "use openmp or not") ! logical option has no default
     call args%add_option_logical("-m", "--mpi", "use mpi or not")
-    call args%add_option_integer("-t", "--thread", "thread number, valid if openmp is set", 1)
-    call args%add_option_integer("-p", "--process", "process number, valid if mpi is set", 1)
+    call args%add_option_integer("-t", "--thread", "thread number,\nit is valid only if openmp is set", 1)
+    call args%add_option_integer("-p", "--process", "process number,\nit is valid only if mpi is set", 1)
     call args%add_option_string("", "--chemical", "chemical formula", "H2O") ! short name can be empty
     call args%add_named_argument_string("input", "initialize file")
     call args%add_named_argument_string("output", "output file")
     call args%parse()
 
-    if(args%has_option("--openmp")) then
+    if (args%has_option("--openmp")) then
         print '(A,I2,A)', "openmp is used, and we use ", args%get_option_integer("-t"), " threads"
     end if
-    if(args%has_option("--mpi")) then
+    if (args%has_option("--mpi")) then
         print '(A,I2,A)', "mpi is used, and we use ", args%get_option_integer("-p"), " processes"
     end if
     print '(A,A)', "the calculated chemical is ", trim(args%get_option_string("--chemical"))
@@ -36,7 +36,7 @@ program test
     ! you can also print the cached `args` into INI file
     ! print '(/,A)', "All of the options and arguments are shown below"
     ! call args%print_as_ini(stdout, .true.)
-  contains
+contains
     subroutine show_version_info
         print "(A)", trim(program_name)//" version 0.1.0"
     end subroutine show_version_info
@@ -50,17 +50,19 @@ usage: qcalc [options] [=input] [=output]
 A quantum physics calculation program.
 
 Options:
-  -?, --help              show this help message
-  -v, --version           show version info
-  -o, --openmp            use openmp or not
-  -m, --mpi               use mpi or not
-  -t, --thread            (integer) thread number, valid if openmp is set
-  -p, --process           (integer) process number, valid if mpi is set
-      --chemical          (string) chemical formula
+  -?, --help               show this help message
+  -v, --version            show version info
+  -o, --openmp             use openmp or not
+  -m, --mpi                use mpi or not
+  -t, --thread             (integer) thread number,
+                           it is valid only if openmp is set
+  -p, --process            (integer) process number,
+                           it is valid only if mpi is set
+  --chemical               (string) chemical formula
 
 Named arguments:
-  input                   (string) initialize file
-  output                  (string) output file
+  input                    (string) initialize file
+  output                   (string) output file
 > qclac -o -t 4 input=input.txt output=out.bin
 openmp is used, and we use  4 threads
 the calculated chemical is H2O
@@ -178,12 +180,18 @@ subroutine print_help
 end subroutine
 ```
 
+### multi-line help message
+Some times, help message may be very long. You can use `\n` to as newline split mark. Of course, Fortran does not have escape characters. I just use some character split technique to realize this feature.
+
 ### print argparser
 
 You can print the argparser into INI file format. If the second dummy argument is set to `.true.`, then print help message as comments.
 ```fortran
 call args%print_as_ini(stdout, .true.)
 ```
+
+### `print_uasge` && `set_program_name`
+If you give none command line argument, the program will call `print_usage` and exit. It is just the first line of `print_help`. `set_program_name` only affects program name in `print_usage`, if you does not set it, it will use `argv[0]`.
 
 ## Reference
 
