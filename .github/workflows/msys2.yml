@@ -1,0 +1,31 @@
+name: msys2
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          path-type: inherit
+          install: |
+            mingw-w64-x86_64-gcc-fortran
+            mingw-w64-x86_64-fpm
+            mingw-w64-x86_64-meson
+            mingw-w64-x86_64-ninja
+
+      - name: fpm test
+        run: |
+          fpm test
+
+      - name: meson test
+        run: |
+          meson setup _build
+          meson test -C _build
