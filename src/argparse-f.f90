@@ -113,8 +113,8 @@ module argparse
 
 contains
 
-  function make_argparser(description) result(this)
-    character(len=*) :: description
+  pure function make_argparser(description) result(this)
+    character(len=*), intent(in) :: description
     type(argparser) :: this
     this%description = description
     this%program_name = ''
@@ -130,7 +130,7 @@ contains
     allocate (this%arguments(1))
   end function make_argparser
 
-  subroutine deallocate_argparser(this)
+  pure subroutine deallocate_argparser(this)
     type(argparser), intent(inout) :: this
     if (allocated(this%sc_options)) deallocate (this%sc_options)
     if (allocated(this%options)) deallocate (this%options)
@@ -501,7 +501,7 @@ contains
   subroutine argp_add_sc_option(this, short_name, long_name, help, callback)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
-    external :: callback
+    procedure(sc_option_callback) :: callback
     integer :: t_sc_size, idx
     type(short_circuit_option), dimension(:), allocatable :: t_sc_opts
     ! long name must not be empty
@@ -545,7 +545,7 @@ contains
     !   end subroutine local_print_help
   end subroutine argp_add_help_option
 
-  subroutine argp_try_add_option(this, short_name, long_name, help)
+  pure subroutine argp_try_add_option(this, short_name, long_name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     integer :: t_opt_size, idx
@@ -573,7 +573,7 @@ contains
     this%options(idx)%help = help
   end subroutine argp_try_add_option
 
-  subroutine argp_add_option_logical(this, short_name, long_name, help)
+  pure subroutine argp_add_option_logical(this, short_name, long_name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     integer :: idx
@@ -583,7 +583,7 @@ contains
     this%options(idx)%value = "F"
   end subroutine argp_add_option_logical
 
-  subroutine argp_add_option_integer(this, short_name, long_name, help, default)
+  pure subroutine argp_add_option_integer(this, short_name, long_name, help, default)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     integer, intent(in) :: default
@@ -596,7 +596,7 @@ contains
     this%options(idx)%value = adjustl(value_buffer)
   end subroutine argp_add_option_integer
 
-  subroutine argp_add_option_real(this, short_name, long_name, help, default)
+  pure subroutine argp_add_option_real(this, short_name, long_name, help, default)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     real, intent(in) :: default
@@ -609,7 +609,7 @@ contains
     this%options(idx)%value = adjustl(value_buffer)
   end subroutine argp_add_option_real
 
-  subroutine argp_add_option_double(this, short_name, long_name, help, default)
+  pure subroutine argp_add_option_double(this, short_name, long_name, help, default)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     real(kind=8), intent(in) :: default
@@ -622,7 +622,7 @@ contains
     this%options(idx)%value = adjustl(value_buffer)
   end subroutine argp_add_option_double
 
-  subroutine argp_add_option_string(this, short_name, long_name, help, default)
+  pure subroutine argp_add_option_string(this, short_name, long_name, help, default)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: short_name, long_name, help
     character(len=*), intent(in) :: default
@@ -635,7 +635,7 @@ contains
     this%options(idx)%value = adjustl(value_buffer)
   end subroutine argp_add_option_string
 
-  subroutine argp_try_add_argument(this, name, help)
+  pure subroutine argp_try_add_argument(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: t_arg_size, idx
@@ -657,7 +657,7 @@ contains
     this%arguments(idx)%help = help
   end subroutine argp_try_add_argument
 
-  subroutine argp_try_add_named_argument(this, name, help)
+  pure subroutine argp_try_add_named_argument(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: t_arg_size, idx
@@ -679,7 +679,7 @@ contains
     this%named_arguments(idx)%help = help
   end subroutine argp_try_add_named_argument
 
-  subroutine argp_add_argument_integer(this, name, help)
+  pure subroutine argp_add_argument_integer(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -688,7 +688,7 @@ contains
     this%arguments(idx)%value_type = "integer"
   end subroutine argp_add_argument_integer
 
-  subroutine argp_add_argument_real(this, name, help)
+  pure subroutine argp_add_argument_real(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -697,7 +697,7 @@ contains
     this%arguments(idx)%value_type = "real"
   end subroutine argp_add_argument_real
 
-  subroutine argp_add_argument_double(this, name, help)
+  pure subroutine argp_add_argument_double(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -706,7 +706,7 @@ contains
     this%arguments(idx)%value_type = "double"
   end subroutine argp_add_argument_double
 
-  subroutine argp_add_argument_string(this, name, help)
+  pure subroutine argp_add_argument_string(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -715,7 +715,7 @@ contains
     this%arguments(idx)%value_type = "string"
   end subroutine argp_add_argument_string
 
-  subroutine argp_add_named_argument_integer(this, name, help)
+  pure subroutine argp_add_named_argument_integer(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -724,7 +724,7 @@ contains
     this%named_arguments(idx)%value_type = "integer"
   end subroutine argp_add_named_argument_integer
 
-  subroutine argp_add_named_argument_real(this, name, help)
+  pure subroutine argp_add_named_argument_real(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -733,7 +733,7 @@ contains
     this%named_arguments(idx)%value_type = "real"
   end subroutine argp_add_named_argument_real
 
-  subroutine argp_add_named_argument_double(this, name, help)
+  pure subroutine argp_add_named_argument_double(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -742,7 +742,7 @@ contains
     this%named_arguments(idx)%value_type = "double"
   end subroutine argp_add_named_argument_double
 
-  subroutine argp_add_named_argument_string(this, name, help)
+  pure subroutine argp_add_named_argument_string(this, name, help)
     class(argparser), intent(inout) :: this
     character(len=*), intent(in) :: name, help
     integer :: idx
@@ -751,7 +751,7 @@ contains
     this%named_arguments(idx)%value_type = "string"
   end subroutine argp_add_named_argument_string
 
-  integer function argp_find_option(this, name) result(ans)
+  pure integer function argp_find_option(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -764,7 +764,7 @@ contains
     error stop "(get error) option not found: "//trim(name)
   end function argp_find_option
 
-  subroutine argp_check_option_type(this, idx, type)
+  pure subroutine argp_check_option_type(this, idx, type)
     class(argparser), intent(in) :: this
     integer, intent(in) :: idx
     character(len=*), intent(in) :: type
@@ -774,7 +774,7 @@ contains
     end if
   end subroutine argp_check_option_type
 
-  logical function argp_get_option_logical(this, name) result(ans)
+  pure logical function argp_get_option_logical(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -783,13 +783,13 @@ contains
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_logical
 
-  logical function argp_has_option(this, name) result(ans)
+  pure logical function argp_has_option(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     ans = argp_get_option_logical(this, name)
   end function argp_has_option
 
-  integer function argp_get_option_integer(this, name) result(ans)
+  pure integer function argp_get_option_integer(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -798,7 +798,7 @@ contains
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_integer
 
-  real function argp_get_option_real(this, name) result(ans)
+  pure real function argp_get_option_real(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -807,7 +807,7 @@ contains
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_real
 
-  real(kind=8) function argp_get_option_double(this, name) result(ans)
+  pure real(kind=8) function argp_get_option_double(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -816,7 +816,7 @@ contains
     read (unit=this%options(i)%value, fmt=*) ans
   end function argp_get_option_double
 
-  function argp_get_option_string(this, name) result(ans)
+  pure function argp_get_option_string(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     character(len=value_len) :: ans
@@ -826,7 +826,7 @@ contains
     ans = this%options(i)%value
   end function argp_get_option_string
 
-  integer function argp_find_argument(this, name) result(ans)
+  pure integer function argp_find_argument(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -845,7 +845,7 @@ contains
     error stop "(get error) argument not found: "//trim(name)
   end function argp_find_argument
 
-  subroutine argp_check_argument_type(this, idx, type)
+  pure subroutine argp_check_argument_type(this, idx, type)
     class(argparser), intent(in) :: this
     integer, intent(in) :: idx
     character(len=*), intent(in) :: type
@@ -863,7 +863,7 @@ contains
     end if
   end subroutine argp_check_argument_type
 
-  integer function argp_get_argument_integer(this, name) result(ans)
+  pure integer function argp_get_argument_integer(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -876,7 +876,7 @@ contains
     end if
   end function argp_get_argument_integer
 
-  real function argp_get_argument_real(this, name) result(ans)
+  pure real function argp_get_argument_real(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -889,7 +889,7 @@ contains
     end if
   end function argp_get_argument_real
 
-  real(kind=8) function argp_get_argument_double(this, name) result(ans)
+  pure real(kind=8) function argp_get_argument_double(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: i
@@ -902,7 +902,7 @@ contains
     end if
   end function argp_get_argument_double
 
-  function argp_get_argument_string(this, name) result(ans)
+  pure function argp_get_argument_string(this, name) result(ans)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     character(len=value_len) :: ans
@@ -916,7 +916,7 @@ contains
     end if
   end function argp_get_argument_string
 
-  subroutine argp_check_short_name(this, name)
+  pure subroutine argp_check_short_name(this, name)
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: name
     integer :: name_size, char_pos
@@ -930,9 +930,9 @@ contains
     end if
   end subroutine argp_check_short_name
 
-  subroutine argp_check_long_name(this, name)
+  pure subroutine argp_check_long_name(this, name)
     class(argparser), intent(in) :: this
-    character(len=*) :: name
+    character(len=*), intent(in) :: name
     integer :: i
     if (name == "") then
       error stop "(build error) long option name cannot be empty"
@@ -952,9 +952,9 @@ contains
     end do
   end subroutine argp_check_long_name
 
-  subroutine argp_check_argument_name(this, name)
+  pure subroutine argp_check_argument_name(this, name)
     class(argparser), intent(in) :: this
-    character(len=*) :: name
+    character(len=*), intent(in) :: name
     integer :: i
     if (name == "") then
       error stop "(build error) argument name cannot be empty"
@@ -971,7 +971,7 @@ contains
     end do
   end subroutine argp_check_argument_name
 
-  subroutine split(line, sep, result)
+  pure subroutine split(line, sep, result)
     character(len=*), intent(in) :: line
     character(len=*), intent(in) :: sep
     character(len=*), dimension(:), allocatable, intent(out) :: result
