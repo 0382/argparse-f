@@ -79,6 +79,8 @@ the output file is out.bin
 argparse-f = { git="https://github.com/0382/argparse-f.git" }
 ```
 
+此外，`argparse-f`也支持[Meson](https://mesonbuild.com/)构建系统。
+
 ## 解析规则
 
 在我的库里面，命令行参数分为两大类（可选的选项，和必选的参数），每类又分为两种，总共四种命令行参数。

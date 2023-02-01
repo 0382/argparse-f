@@ -79,6 +79,8 @@ The simple way to use this package is copy the file `src/argparse-f.f90` into yo
 argparse-f = { git="https://github.com/0382/argparse-f.git" }
 ```
 
+In addition, `argparse-f` also supports the [Meson](https://mesonbuild.com/) build system.
+
 ## Parse rules
 
 In this package, command line arguments are classified into two kinds: `option` and `argument`.
