@@ -37,6 +37,8 @@ module argparse
     subroutine sc_option_callback
     end subroutine sc_option_callback
   end interface
+  !> Hack for Intel Fortran
+  procedure(sc_option_callback), pointer :: dummy_print_help_wrapper => dummy_print_help
 
   type short_circuit_option
     character(len=short_name_len) :: short_name
@@ -169,7 +171,7 @@ contains
       do j = 1, argc
         tok = tokens(j)
         if (tok == this%sc_options(i)%short_name .or. tok == this%sc_options(i)%long_name) then
-          if (associated(this%sc_options(i)%callback, dummy_print_help)) then
+          if (associated(this%sc_options(i)%callback, dummy_print_help_wrapper)) then
             call this%print_help()
           else
             call this%sc_options(i)%callback()
@@ -215,7 +217,7 @@ contains
         idx = this%short_name_index(ichar(tok(i:i)))
         ! short circuit option
         if (idx <= this%sc_option_size .and. this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
-          if (associated(this%sc_options(idx)%callback, dummy_print_help)) then
+          if (associated(this%sc_options(idx)%callback, dummy_print_help_wrapper)) then
             call this%print_help()
           else
             call this%sc_options(idx)%callback()
