@@ -32,6 +32,7 @@ module argparse
 
   integer, parameter :: description_len = 1024
   integer, parameter :: program_name_len = 1024
+  integer, parameter :: default_index_value = -1
 
   abstract interface
     subroutine sc_option_callback
@@ -74,7 +75,7 @@ module argparse
     type(argument), dimension(:), allocatable :: named_arguments
     integer :: argument_size
     type(argument), dimension(:), allocatable :: arguments
-    integer, dimension(0:127) :: short_name_index
+    integer, dimension(0:127) :: short_name_index = default_index_value
   contains
     final :: deallocate_argparser
     procedure :: parse => argp_parse
@@ -124,7 +125,6 @@ contains
     this%option_size = 0
     this%named_argument_size = 0
     this%argument_size = 0
-    this%short_name_index(:) = -1
     ! 主要是为了后面不用判断是否 `allocated`
     allocate (this%sc_options(1))
     allocate (this%options(1))
@@ -927,7 +927,7 @@ contains
       error stop "(build error) short option name must be `-` followed by single character"
     end if
     char_pos = ichar(name(2:2))
-    if (this%short_name_index(char_pos) /= -1) then
+    if (this%short_name_index(char_pos) /= default_index_value) then
       error stop "(build error) short option name "//trim(name)//" already exists"
     end if
   end subroutine argp_check_short_name
