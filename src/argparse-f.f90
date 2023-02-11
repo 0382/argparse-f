@@ -25,8 +25,8 @@ module argparse
   private
   integer, parameter :: type_string_len = 16
   integer, parameter :: short_name_len = 2
-  integer, parameter :: long_name_len = 16
-  integer, parameter :: argument_len = 16
+  integer, parameter :: long_name_len = 32
+  integer, parameter :: argument_len = 32
   integer, parameter :: help_len = 1024
   integer, parameter :: value_len = 1024
 
@@ -321,7 +321,12 @@ contains
     character(len=help_len), dimension(:), allocatable :: help_split
 
     call this%print_usage()
-    print '(/,A,/,/,"Options:")', trim(this%description)
+    print *, ""
+    call split(this%description, "\n", help_split)
+    do i = 1, size(help_split)
+      print '(A)', trim(help_split(i))
+    end do
+    print '(/,A)', "Options:"
 
     ! calculate the longest option name
     max_name_length = 0
