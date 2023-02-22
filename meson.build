@@ -5,6 +5,7 @@ project(
     license : 'MIT',
     default_options : [
         'buildtype=debugoptimized',
+        'fortran_std=f2018'
     ]
 )
 

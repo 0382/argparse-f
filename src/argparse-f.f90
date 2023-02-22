@@ -304,12 +304,12 @@ contains
   subroutine argp_print_usage(this)
     class(argparser), intent(in) :: this
     integer :: i
-    print '("usage: ",A," [options]",$)', trim(this%program_name)
+    write (*, '("usage: ",A," [options]")', advance='no') trim(this%program_name)
     do i = 1, this%named_argument_size
-      print '(" [=",A,"]",$)', trim(this%named_arguments(i)%name)
+      write (*, '(" [=",A,"]")', advance='no') trim(this%named_arguments(i)%name)
     end do
     do i = 1, this%argument_size
-      print '(" [",A,"]",$)', trim(this%arguments(i)%name)
+      write (*, '(" [",A,"]")',  advance='no') trim(this%arguments(i)%name)
     end do
     print *, ""
   end subroutine argp_print_usage
@@ -348,16 +348,16 @@ contains
 
     ! print options
     do i = 1, this%sc_option_size
-      print '(A2,$)', "  "
+      write (*, '(A2)', advance='no') "  "
       printed_length = 0
       if (this%sc_options(i)%short_name /= "") then
-        print '(A,", ",$)', trim(this%sc_options(i)%short_name)
+        write (*, '(A,", ")', advance='no') trim(this%sc_options(i)%short_name)
         printed_length = 4
       end if
-      print '(A,$)', trim(this%sc_options(i)%long_name)
+      write (*, '(A)', advance='no') trim(this%sc_options(i)%long_name)
       printed_length = printed_length + len_trim(this%sc_options(i)%long_name)
-      write (unit=help_fmt, fmt='("(",I0,"X,A,$)")') max_name_length - printed_length
-      print help_fmt, ''
+      write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length - printed_length
+      write (*, help_fmt, advance='no') ''
       call split(this%sc_options(i)%help, "\n", help_split)
       print '(A)', trim(help_split(1))
       write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length + 2
@@ -367,16 +367,16 @@ contains
       deallocate (help_split)
     end do
     do i = 1, this%option_size
-      print '(A2,$)', "  "
+      write (*, '(A2)', advance='no') "  "
       printed_length = 0
       if (this%options(i)%short_name /= "") then
-        print '(A,", ",$)', trim(this%options(i)%short_name)
+        write (*, '(A,", ")', advance='no') trim(this%options(i)%short_name)
         printed_length = 4
       end if
-      print '(A,$)', trim(this%options(i)%long_name)
+      write (*, '(A)', advance='no') trim(this%options(i)%long_name)
       printed_length = printed_length + len_trim(this%options(i)%long_name)
-      write (unit=help_fmt, fmt='("(",I0,"X,A,$)")') max_name_length - printed_length
-      print help_fmt, ''
+      write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length - printed_length
+      write (*, help_fmt, advance='no') ''
       call split(this%options(i)%help, "\n", help_split)
       if (this%options(i)%value_type == "logical") then
         print '(A)', trim(help_split(1))
@@ -398,11 +398,11 @@ contains
       end do
       max_name_length = max(max_name_length, 25)
       do i = 1, this%named_argument_size
-        print '(2X,A,$)', trim(this%named_arguments(i)%name)
+        write (*, '(2X,A)', advance='no') trim(this%named_arguments(i)%name)
         printed_length = len_trim(this%named_arguments(i)%name)
-        write (unit=help_fmt, fmt='("(",I0,"X,""("",A,"") "" ,$)")') max_name_length - printed_length
+        write (unit=help_fmt, fmt='("(",I0,"X,""("",A,"") "")")') max_name_length - printed_length
         ! print '(A)', help_fmt
-        print help_fmt, trim(this%named_arguments(i)%value_type)
+        write (*, help_fmt, advance='no') trim(this%named_arguments(i)%value_type)
         call split(this%named_arguments(i)%help, "\n", help_split)
         print '(A)', trim(help_split(1))
         write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length + 2
@@ -421,10 +421,10 @@ contains
       end do
       max_name_length = max(max_name_length, 25)
       do i = 1, this%argument_size
-        print '(2X,A,$)', trim(this%arguments(i)%name)
+        write (*, '(2X,A)', advance='no') trim(this%arguments(i)%name)
         printed_length = len_trim(this%arguments(i)%name)
-        write (unit=help_fmt, fmt='("(",I0,"X,""("",A,"") "" ,$)")') max_name_length - printed_length
-        print help_fmt, trim(this%arguments(i)%value_type)
+        write (unit=help_fmt, fmt='("(",I0,"X,""("",A,"") "")")') max_name_length - printed_length
+        write (*, help_fmt, advance='no') trim(this%arguments(i)%value_type)
         call split(this%arguments(i)%help, "\n", help_split)
         print '(A)', trim(help_split(1))
         write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length + 2
