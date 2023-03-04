@@ -326,7 +326,7 @@ contains
     do i = 1, size(help_split)
       print '(A)', trim(help_split(i))
     end do
-    print '(/,A)', "Options:"
+    print '(/,A)', "options:"
 
     ! calculate the longest option name
     max_name_length = 0
@@ -391,7 +391,7 @@ contains
     end do
 
     if (this%named_argument_size > 0) then
-      print '(/,A)', "Named arguments:"
+      print '(/,A)', "named arguments:"
       max_name_length = 0
       do i = 1, this%named_argument_size
         max_name_length = max(max_name_length, len_trim(this%named_arguments(i)%name))
