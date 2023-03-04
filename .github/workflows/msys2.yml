@@ -24,6 +24,8 @@ jobs:
       - name: fpm test
         run: |
           fpm test
+          fpm test -- -?
+          fpm test -- -v
 
       - name: meson test
         run: |

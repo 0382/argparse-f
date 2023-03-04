@@ -381,7 +381,7 @@ contains
       if (this%options(i)%value_type == "logical") then
         print '(A)', trim(help_split(1))
       else
-        print '("(",A,") ",A)', trim(this%options(i)%value_type), trim(help_split(1))
+        print '("(",A," [=",A,"]) ",A)', trim(this%options(i)%value_type), trim(this%options(i)%value), trim(help_split(1))
       end if
       write (unit=help_fmt, fmt='("(",I0,"X,A)")') max_name_length + 2
       do j = 2, size(help_split, 1)
