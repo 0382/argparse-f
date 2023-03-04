@@ -45,25 +45,25 @@ end program test
 将其编译成`qclac`，使用方式如下
 ```bash
 > qclac -?
-usage: qcalc [options] [=input] [=output] 
+usage: qcalc [options] [=input] [=output]
 
 A quantum physics calculation program.
 
-Options:
+options:
   -?, --help               show this help message
   -v, --version            show version info
   -o, --openmp             use openmp or not
   -m, --mpi                use mpi or not
-  -t, --thread             (integer) thread number,
+  -t, --thread             (integer [=1]) thread number,
                            it is valid only if openmp is set
-  -p, --process            (integer) process number,
+  -p, --process            (integer [=1]) process number,
                            it is valid only if mpi is set
-  --chemical               (string) chemical formula
+  --chemical               (string [=H2O]) chemical formula
 
-Named arguments:
+named arguments:
   input                    (string) initialize file
   output                   (string) output file
-> qclac -om -t 16 input=input.txt output=out.bin 
+> qclac -om -t 16 input=input.txt output=out.bin
 openmp is used, and we use 16 threads
 mpi is used, and we use  1 processes
 the calculated chemical is H2O
@@ -167,11 +167,11 @@ call args%add_named_argument_string("input", "initialize file")
 
 ## 获取结果
 
-### 参数
+### 选项
 
 使用类似`args%get_option_logical(name)`的方法获取结果选项的结果，这里的`name`既可以长名字也可以短名字。对于`logical`类型的选项，特别提供了`args%has_option(name)`函数。
 
-### argument
+### 参数
 
 使用类似`args%get_argument_logical(name)`的方法获取结果参数的结果。命名参数和位置参数的名字不允许冲突，所以获取的时候可以不用区分，就没有`get_named_argument_xxx`版本的函数了。
 

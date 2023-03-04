@@ -326,6 +326,7 @@ contains
     do i = 1, size(help_split)
       print '(A)', trim(help_split(i))
     end do
+    deallocate(help_split)
     print '(/,A)', "options:"
 
     ! calculate the longest option name

@@ -45,25 +45,25 @@ end program test
 Compile it as `qclac`, and use it like:
 ```bash
 > qclac -?
-usage: qcalc [options] [=input] [=output] 
+usage: qcalc [options] [=input] [=output]
 
 A quantum physics calculation program.
 
-Options:
+options:
   -?, --help               show this help message
   -v, --version            show version info
   -o, --openmp             use openmp or not
   -m, --mpi                use mpi or not
-  -t, --thread             (integer) thread number,
+  -t, --thread             (integer [=1]) thread number,
                            it is valid only if openmp is set
-  -p, --process            (integer) process number,
+  -p, --process            (integer [=1]) process number,
                            it is valid only if mpi is set
-  --chemical               (string) chemical formula
+  --chemical               (string [=H2O]) chemical formula
 
-Named arguments:
+named arguments:
   input                    (string) initialize file
   output                   (string) output file
-> qclac -om -t 16 input=input.txt output=out.bin 
+> qclac -om -t 16 input=input.txt output=out.bin
 openmp is used, and we use 16 threads
 mpi is used, and we use  1 processes
 the calculated chemical is H2O
