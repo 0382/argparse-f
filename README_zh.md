@@ -215,7 +215,7 @@ call args%print_as_ini(stdout, .true.)
 这个函数的第二个参数表示是否打印注释，如果为`.true.`那么会把帮助信息打印为注释。
 
 ### `print_uasge`和`set_program_name`
-如果你运行程序不带任何命令行参数，那么`argparser`会调用`print_usage`并退出。`print_usage`实际上就是`print_help`的第一行信息，算是一个简短的帮助信息。`set_program_name`仅仅影响`print_usage`时显示的程序名字，如果不调用这个函数，那么会使用`argv[0]`。
+如果你运行程序不带任何命令行参数同时程序应该需要argument，那么`argparser`会调用`print_usage`并退出。`print_usage`实际上就是`print_help`的第一行信息，算是一个简短的帮助信息。`set_program_name`仅仅影响`print_usage`时显示的程序名字，如果不调用这个函数，那么会使用`argv[0]`。
 
 ## 参考
 

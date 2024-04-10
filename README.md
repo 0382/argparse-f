@@ -104,7 +104,7 @@ In this version, normal option support five data types: `logical, integer, real,
 ```bash
 ls -l
 ```
-them `-l` option is set to `.true.`. To add the other four data type's options, you must give the default value, in case if one do not set the option, we use the default value. In command line, you should set the option like this:
+them `-l` option is set to `.true.`. To add the other four data types' options, you must give the default value, in case if one do not set the option, it use the default value. In command line, you should set the option like this:
 ```bash
 greet --name Alice --age 24
 ```
@@ -130,7 +130,7 @@ The corresponding callback subroutine is called immediately as long as the progr
 
 ### argument
 
-`argument` is opposited to `option`. You must set it's value in command line. If not, the program will stop with error. `argument` also contains two types: position argument and named argument.
+`argument` is opposited to `option`. You must set its value in command line. If not, the program will stop with error. `argument` also contains two types: position argument and named argument.
 
 In this version, `argument` supports `integer, real, real(kind=8), character(len=*)` data types. It does not support `logical` type, you should use `option` instead.
 #### position argument
@@ -153,7 +153,7 @@ The named argument is defined by myself, it is designed for my work. It is used 
 ```bash
 greet name=Alice age=24
 ```
-It is tedious comparing with position argument, so it should not used in a common command line program. But it useful in a big project, and you run program with a shell script. In this case, the named argument make the script more readable.
+It is tedious comparing with position argument, so it should not be used in a common command line program. But it is useful in a big project, and you run program with a shell script. In this case, the named argument make the script more readable.
 
 Add named argument like this:
 ```fortran
@@ -209,7 +209,7 @@ call args%print_as_ini(stdout, .true.)
 ```
 
 ### `print_uasge` && `set_program_name`
-If you give none command line argument, the program will call `print_usage` and exit. It is just the first line of `print_help`. `set_program_name` only affects program name in `print_usage`, if you does not set it, it will use `argv[0]`.
+If you give none command line argument and if it needs at least one argument, the program will call `print_usage` and exit. It is just the first line of `print_help`. `set_program_name` only affects program name in `print_usage`, if you does not set it, it will use `argv[0]`.
 
 ## Reference
 

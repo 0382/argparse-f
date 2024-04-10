@@ -1,6 +1,6 @@
 ! MIT License
 
-! Copyright (c) 2023 0382
+! Copyright (c) 2023 0382 and argparse-f's contributors
 
 ! Permission is hereby granted, free of charge, to any person obtaining a copy
 ! of this software and associated documentation files (the "Software"), to deal
@@ -156,7 +156,7 @@ contains
         print "(A)", "WARNING: you get a truncated program name"
       end if
     end if
-    if (argc == 0) then
+    if (argc == 0 .and. (this%argument_size /= 0 .or. this%named_argument_size /= 0)) then
       call this%print_usage()
       stop
     end if
