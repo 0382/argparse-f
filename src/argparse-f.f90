@@ -215,6 +215,9 @@ contains
       tok(1:value_len - 1) = tok(2:value_len)
       do i = 1, len_trim(tok)
         idx = this%short_name_index(ichar(tok(i:i)))
+        if (idx == default_index_value) then
+          error stop "(parse error) unrecognized short name option '-"//tok(i:i)//"' in -"//trim(tok)
+        end if
         ! short circuit option
         if (idx <= this%sc_option_size .and. this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
           if (associated(this%sc_options(idx)%callback, dummy_print_help_wrapper)) then
@@ -262,6 +265,13 @@ contains
     ! start parse position argument
     if (argc /= this%argument_size) then
       print '(A,I0,A,I0)', "(parse error) position argument number missmatching, give ", argc, ", but need ", this%argument_size
+      if (argc /= 0) then
+        write (*, '("unparsed arguments: ")', advance='no')  
+        do i = 1, argc
+          write (*, '(" ",A)', advance='no') trim(tokens(i))
+        end do
+        print *
+      end if
       error stop
     end if
     do i = 1, this%argument_size

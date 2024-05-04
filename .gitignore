@@ -1,3 +1,5 @@
 build/
 .vscode/
 *.mod
+*.exe
+*.obj
