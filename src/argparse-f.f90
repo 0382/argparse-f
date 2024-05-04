@@ -32,7 +32,7 @@ module argparse
 
   integer, parameter :: description_len = 1024
   integer, parameter :: program_name_len = 1024
-  integer, parameter :: default_index_value = -1
+  integer, parameter :: null_index_value = -1
 
   abstract interface
     subroutine sc_option_callback
@@ -75,7 +75,7 @@ module argparse
     type(argument), dimension(:), allocatable :: named_arguments
     integer :: argument_size
     type(argument), dimension(:), allocatable :: arguments
-    integer, dimension(0:127) :: short_name_index = default_index_value
+    integer, dimension(0:127) :: short_name_index = null_index_value
   contains
     final :: deallocate_argparser
     procedure :: parse => argp_parse
@@ -192,7 +192,8 @@ contains
             exit
           else
             if (j == argc) then
-              error stop "(parse error) option '"//trim(this%options(i)%long_name)//"' should have value"
+              call argp_parse_error(this, &
+              &"option '"//trim(this%options(i)%long_name)//"' requires a "//trim(this%options(i)%value_type)//" value")
             end if
             this%options(i)%value = tokens(j + 1)
             token_parsed_num = 2
@@ -215,27 +216,32 @@ contains
       tok(1:value_len - 1) = tok(2:value_len)
       do i = 1, len_trim(tok)
         idx = this%short_name_index(ichar(tok(i:i)))
-        if (idx == default_index_value) then
-          error stop "(parse error) unrecognized short name option '-"//tok(i:i)//"' in -"//trim(tok)
+        if (idx == null_index_value) then
+          call argp_parse_error(this, "unrecognized short name option '-"//tok(i:i)//"' in -"//trim(tok))
         end if
         ! short circuit option
-        if (idx <= this%sc_option_size .and. this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
-          if (associated(this%sc_options(idx)%callback, dummy_print_help_wrapper)) then
-            call this%print_help()
-          else
-            call this%sc_options(idx)%callback()
+        if (idx <= this%sc_option_size) then
+          if(this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
+            if (associated(this%sc_options(idx)%callback, dummy_print_help_wrapper)) then
+              call this%print_help()
+            else
+              call this%sc_options(idx)%callback()
+            end if
+            stop
           end if
-          stop
         end if
         ! normal option
-        if (idx <= this%option_size .and. this%options(idx)%short_name(2:2) == tok(i:i)) then
-          if (this%options(idx)%value_type == "logical") then
-            this%options(idx)%value = 'T'
+        if (idx <= this%option_size) then
+          if(this%options(idx)%short_name(2:2) == tok(i:i)) then
+            if (this%options(idx)%value_type == "logical") then
+              this%options(idx)%value = 'T'
+            else
+              call argp_parse_error(this, &
+              &trim(this%options(idx)%value_type)//" option '-"//tok(i:i)//"' cannot be in aggregate argument")
+            end if
           else
-            error stop "(parse error) aggregate short name options must be logical"
+            call argp_parse_error(this, "unrecognized short name option '"//tok(i:i)//"' in -"//trim(tok))
           end if
-        else
-          error stop "(parse error) unrecognized short name option '"//tok(i:i)//"' in -"//trim(tok)
         end if
       end do
       tokens(j - 1:argc - 1) = tokens(j:argc)
@@ -243,7 +249,7 @@ contains
     end do
     ! parse named argument
     if (argc < this%named_argument_size) then
-      error stop "(parse error) not enough named_arguments"
+      call argp_parse_error(this, "not enough named_arguments")
     end if
     do i = 1, this%named_argument_size
       token_parsed_num = 0
@@ -258,21 +264,19 @@ contains
         tokens(j:argc - token_parsed_num) = tokens(j + token_parsed_num:argc)
         argc = argc - token_parsed_num
       end if
-      if (this%named_arguments(i)%value == "") then
-        error stop "(parse error) named_argument "//this%named_arguments(i)%name//" should have value"
-      end if
     end do
     ! start parse position argument
     if (argc /= this%argument_size) then
-      print '(A,I0,A,I0)', "(parse error) position argument number missmatching, give ", argc, ", but need ", this%argument_size
+      call this%print_help()
+      print '(A,I0,A,I0)', "position argument number missmatching, give ", argc, ", but need ", this%argument_size
       if (argc /= 0) then
-        write (*, '("unparsed arguments: ")', advance='no')
+        write (*, '("unparsed arguments:")', advance='no')
         do i = 1, argc
           write (*, '(" ",A)', advance='no') trim(tokens(i))
         end do
         print *
       end if
-      error stop
+      stop
     end if
     do i = 1, this%argument_size
       this%arguments(i)%value = tokens(i)
@@ -673,6 +677,7 @@ contains
     idx = this%argument_size
     this%arguments(idx)%name = name
     this%arguments(idx)%help = help
+    this%arguments(idx)%value = ""
   end subroutine argp_try_add_argument
 
   pure subroutine argp_try_add_named_argument(this, name, help)
@@ -695,6 +700,7 @@ contains
     idx = this%named_argument_size
     this%named_arguments(idx)%name = name
     this%named_arguments(idx)%help = help
+    this%named_arguments(idx)%value = ""
   end subroutine argp_try_add_named_argument
 
   pure subroutine argp_add_argument_integer(this, name, help)
@@ -943,7 +949,7 @@ contains
       error stop "(build error) short option name must be `-` followed by single character"
     end if
     char_pos = ichar(name(2:2))
-    if (this%short_name_index(char_pos) /= default_index_value) then
+    if (this%short_name_index(char_pos) /= null_index_value) then
       error stop "(build error) short option name "//trim(name)//" already exists"
     end if
   end subroutine argp_check_short_name
@@ -988,6 +994,13 @@ contains
       end if
     end do
   end subroutine argp_check_argument_name
+
+  subroutine argp_parse_error(this, message)
+    class(argparser), intent(in) :: this
+    character(len=*), intent(in) :: message
+    call this%print_help()
+    stop trim(message)
+  end subroutine argp_parse_error
 
   pure subroutine split(line, sep, result)
     character(len=*), intent(in) :: line

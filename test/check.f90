@@ -19,10 +19,10 @@ program check
     call args%parse()
 
     if (args%has_option("--openmp")) then
-        print '(A,I2,A)', "openmp is used, and we use ", args%get_option_integer("-t"), " threads"
+        print '(A,I0,A)', "openmp is used, and we use ", args%get_option_integer("-t"), " threads"
     end if
     if (args%has_option("--mpi")) then
-        print '(A,I2,A)', "mpi is used, and we use ", args%get_option_integer("-p"), " processes"
+        print '(A,I0,A)', "mpi is used, and we use ", args%get_option_integer("-p"), " processes"
     end if
     print '(A,A)', "the calculated chemical is ", trim(args%get_option_string("--chemical"))
     print '(A,A)', "the input file is ", trim(args%get_argument_string("input"))
