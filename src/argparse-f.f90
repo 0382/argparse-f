@@ -266,7 +266,7 @@ contains
     if (argc /= this%argument_size) then
       print '(A,I0,A,I0)', "(parse error) position argument number missmatching, give ", argc, ", but need ", this%argument_size
       if (argc /= 0) then
-        write (*, '("unparsed arguments: ")', advance='no')  
+        write (*, '("unparsed arguments: ")', advance='no')
         do i = 1, argc
           write (*, '(" ",A)', advance='no') trim(tokens(i))
         end do
@@ -296,7 +296,7 @@ contains
       if (name /= arg%name) then
         ans = .false.
       else
-        arg%value = line(i + 1:line_size)
+        arg%value(1:line_size - i) = line(i + 1:line_size)
         ans = .true.
       end if
     end if
@@ -319,7 +319,7 @@ contains
       write (*, '(" [=",A,"]")', advance='no') trim(this%named_arguments(i)%name)
     end do
     do i = 1, this%argument_size
-      write (*, '(" [",A,"]")',  advance='no') trim(this%arguments(i)%name)
+      write (*, '(" [",A,"]")', advance='no') trim(this%arguments(i)%name)
     end do
     print *, ""
   end subroutine argp_print_usage
@@ -336,7 +336,7 @@ contains
     do i = 1, size(help_split)
       print '(A)', trim(help_split(i))
     end do
-    deallocate(help_split)
+    deallocate (help_split)
     print '(/,A)', "options:"
 
     ! calculate the longest option name

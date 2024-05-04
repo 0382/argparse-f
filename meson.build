@@ -13,10 +13,9 @@ argparse_f_src = files(
     'src/argparse-f.f90'
 )
 
-argparse_f_lib = library(
+argparse_f_lib = static_library(
     meson.project_name(),
     sources : argparse_f_src,
-    version : meson.project_version(),
     install : true,
 )
 
