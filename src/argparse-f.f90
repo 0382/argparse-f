@@ -196,6 +196,7 @@ contains
               &"option '"//trim(this%options(i)%long_name)//"' requires a "//trim(this%options(i)%value_type)//" value")
             end if
             this%options(i)%value = tokens(j + 1)
+            call argp_try_parse_option(this, this%options(i))
             token_parsed_num = 2
             exit
           end if
@@ -221,7 +222,7 @@ contains
         end if
         ! short circuit option
         if (idx <= this%sc_option_size) then
-          if(this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
+          if (this%sc_options(idx)%short_name(2:2) == tok(i:i)) then
             if (associated(this%sc_options(idx)%callback, dummy_print_help_wrapper)) then
               call this%print_help()
             else
@@ -232,7 +233,7 @@ contains
         end if
         ! normal option
         if (idx <= this%option_size) then
-          if(this%options(idx)%short_name(2:2) == tok(i:i)) then
+          if (this%options(idx)%short_name(2:2) == tok(i:i)) then
             if (this%options(idx)%value_type == "logical") then
               this%options(idx)%value = 'T'
             else
@@ -257,6 +258,7 @@ contains
         tok = tokens(j)
         if (try_parse_named_argument(tok, this%named_arguments(i))) then
           token_parsed_num = 1
+          call argp_try_parse_argumrnt(this, this%named_arguments(i))
           exit
         end if
       end do
@@ -268,6 +270,7 @@ contains
     ! start parse position argument
     if (argc /= this%argument_size) then
       call this%print_help()
+      print '(A)', repeat('-', 80)
       print '(A,I0,A,I0)', "position argument number missmatching, give ", argc, ", but need ", this%argument_size
       if (argc /= 0) then
         write (*, '("unparsed arguments:")', advance='no')
@@ -280,6 +283,7 @@ contains
     end if
     do i = 1, this%argument_size
       this%arguments(i)%value = tokens(i)
+      call argp_try_parse_argumrnt(this, this%arguments(i))
     end do
     deallocate (tokens)
   end subroutine argp_parse
@@ -788,6 +792,26 @@ contains
     error stop "(get error) option not found: "//trim(name)
   end function argp_find_option
 
+  subroutine argp_try_parse_option(this, opt)
+    class(argparser), intent(inout) :: this
+    type(option), intent(inout) :: opt
+    integer :: state, iret
+    real :: rret
+    real(kind=8) :: dret
+    state = 0
+    if (opt%value_type == "integer") then
+      read (unit=opt%value, fmt=*, iostat=state) iret
+    else if (opt%value_type == "real") then
+      read (unit=opt%value, fmt=*, iostat=state) rret
+    else if (opt%value_type == "double") then
+      read (unit=opt%value, fmt=*, iostat=state) dret
+    end if
+    if (state /= 0) then
+      call argp_parse_error(this, &
+      &"option '"//trim(opt%long_name)//"' need a "//trim(opt%value_type)//" value, but got '"//trim(opt%value)//"'")
+    end if
+  end subroutine argp_try_parse_option
+
   pure subroutine argp_check_option_type(this, idx, type)
     class(argparser), intent(in) :: this
     integer, intent(in) :: idx
@@ -868,6 +892,26 @@ contains
     end do
     error stop "(get error) argument not found: "//trim(name)
   end function argp_find_argument
+
+  subroutine argp_try_parse_argumrnt(this, arg)
+    class(argparser), intent(inout) :: this
+    type(argument), intent(inout) :: arg
+    integer :: state, iret
+    real :: rret
+    real(kind=8) :: dret
+    state = 0
+    if (arg%value_type == "integer") then
+      read (unit=arg%value, fmt=*, iostat=state) iret
+    else if (arg%value_type == "real") then
+      read (unit=arg%value, fmt=*, iostat=state) rret
+    else if (arg%value_type == "double") then
+      read (unit=arg%value, fmt=*, iostat=state) dret
+    end if
+    if (state /= 0) then
+      call argp_parse_error(this, &
+      &"argument '"//trim(arg%name)//"' need a "//trim(arg%value_type)//" value, but got '"//trim(arg%value)//"'")
+    end if
+  end subroutine argp_try_parse_argumrnt
 
   pure subroutine argp_check_argument_type(this, idx, type)
     class(argparser), intent(in) :: this
@@ -999,7 +1043,9 @@ contains
     class(argparser), intent(in) :: this
     character(len=*), intent(in) :: message
     call this%print_help()
-    stop trim(message)
+    print '(A)', repeat("-", 80)
+    print '("Error: ", A)', trim(message)
+    stop
   end subroutine argp_parse_error
 
   pure subroutine split(line, sep, result)
