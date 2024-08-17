@@ -433,7 +433,7 @@ contains
     end if
 
     if (this%argument_size > 0) then
-      print '(/,A)', "Position rguments:"
+      print '(/,A)', "Position arguments:"
       max_name_length = 0
       do i = 1, this%argument_size
         max_name_length = max(max_name_length, len_trim(this%arguments(i)%name))
